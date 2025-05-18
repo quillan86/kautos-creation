@@ -7,6 +7,8 @@ env_path = Path(__file__).resolve().parents[1] / ".env"
 load_dotenv(dotenv_path=env_path)
 
 NOTION_TOKEN = os.getenv("NOTION_TOKEN")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+MODEL_NAME = "claude-3-7-sonnet-20250219"
 
 TIMELINE_DATABASE_ID = "1f6c1f3a9cd0807a8d37fea4cf41c9de"
 LOCATION_DATABASE_ID = "1f6c1f3a9cd080e1a7f0d913e6919011"

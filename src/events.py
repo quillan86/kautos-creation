@@ -12,10 +12,21 @@ class EventsExtractor:
         location (str | None): The name of the location
         near (bool): Whether to include near locations
     """
+
     def __init__(self):
         self.client = Client(auth=NOTION_TOKEN)
 
-    def get_similar_events_to_event(self, event_name: str, delta_year: int, near: bool = True) -> list[dict]:
+    def get_event_by_name(self, event_name: str) -> dict:
+        """
+        Gets an event by its name. Parses the event.
+        """
+        event = self._get_event_by_name(event_name)
+        event = self._parse_event(event)
+        return event
+
+    def get_similar_events_to_event(
+        self, event_name: str, delta_year: int, near: bool = True, symmetric: bool = True
+    ) -> tuple[dict, list[dict]]:
         """
         Gets similar events to the given event.
 
@@ -23,12 +34,14 @@ class EventsExtractor:
             event_name (str): The name of the event
             delta_year (int): The delta rangeyear of the event
             near (bool): Whether to include near locations
+            symmetric (bool): Whether the delta year is symmetric around the event.
 
         Returns:
-            list[dict]: A list of dictionaries with the event details
+            dict: The event
+            list[dict]: A list of dictionaries with the similar events
         """
 
-        event = self.get_event_by_name(event_name)
+        event = self._get_event_by_name(event_name)
 
         start_year_event = self._extract_number(event, "Start Year")
         end_year_event = self._extract_number(event, "End Year")
@@ -39,19 +52,35 @@ class EventsExtractor:
         if end_year_event is None:
             end_year_event = start_year_event
 
+        if symmetric:
+            start_year_search = start_year_event - delta_year
+            end_year_search = end_year_event + delta_year
+        else:
+            start_year_search = start_year_event - delta_year
+            end_year_search = end_year_event
+
         if event:
+            event = self._parse_event(event)
+            event_name = event["name"]
+
             events = self.get_similar_events_in_range(
-                start_year=start_year_event - delta_year,
-                end_year=end_year_event + delta_year,
+                start_year=start_year_search,
+                end_year=end_year_search,
                 location=location_name_event,
                 near=near,
+                exclude_event=event_name,
             )
-            return events
+            return event, events
         else:
             return []
 
     def get_similar_events_in_range(
-        self, start_year: int, end_year: int | None = None, location: str | None = None, near: bool = False
+        self,
+        start_year: int,
+        end_year: int | None = None,
+        location: str | None = None,
+        near: bool = False,
+        exclude_event: str | None = None,
     ):
         """
         Gets similar events to the given location.
@@ -61,7 +90,7 @@ class EventsExtractor:
             end_year (int | None): The end year of the event
             location (str | None): The name of the location
             near (bool): Whether to include near locations
-
+            exclude_event (str | None): The name of the event to exclude
         Returns:
             list[dict]: A list of dictionaries with the event details
         """
@@ -74,7 +103,7 @@ class EventsExtractor:
             location_query_results = self.client.databases.query(
                 **{
                     "database_id": LOCATION_DATABASE_ID,
-                    "filter": {
+                "filter": {
                         "property": "Name",  # Assuming "Name" is the title property
                         "title": {"equals": location},
                     },
@@ -95,6 +124,15 @@ class EventsExtractor:
         top_level_and_filters.append({"property": "Start Year", "number": {"greater_than_or_equal_to": start_year}})
         if end_year is not None:
             top_level_and_filters.append({"property": "Start Year", "number": {"less_than_or_equal_to": end_year}})
+
+        # Add exclusion filter if exclude_event is provided
+        if exclude_event:
+            top_level_and_filters.append(
+                {
+                    "property": "Name",  # Assuming "Name" is the title property of the event
+                    "title": {"does_not_equal": exclude_event},
+                }
+            )
 
         # 2. Prepare location-based OR sub-filters
         location_or_sub_filters = []
@@ -139,7 +177,7 @@ class EventsExtractor:
             events.append(self._parse_event(raw_event))
 
         return events
-
+    
     def _get_event_by_name(self, event_name: str) -> dict | None:
         """
         Gets an event by its name. Does not parse the event.
@@ -191,7 +229,8 @@ class EventsExtractor:
             "start_year": self._extract_number(raw_event, "Start Year"),
             "end_year": self._extract_number(raw_event, "End Year"),
             "importance": self._extract_number(raw_event, "Importance"),
-            "description": self._extract_rich_text(raw_event, "Excerpt"),
+            "description": self._extract_rich_text(raw_event, "Description"),
+            "excerpt": self._extract_rich_text(raw_event, "Excerpt"),
             "location": location,
             "polities": polities,
         }
@@ -289,7 +328,7 @@ class EventsExtractor:
             str: The name of the entity, or None if no name is found
         """
         return entity["properties"]["Name"]["title"][0]["plain_text"] if entity["properties"]["Name"]["title"] else None
-
+    
     def _extract_rich_text(self, raw_event: dict, property_name: str) -> str:
         """
         Extracts the rich text of the property from the raw_event.
@@ -310,7 +349,11 @@ class EventsExtractor:
         """
         Extracts the number of the property from the raw_event.
         """
-        return raw_event["properties"][property_name]["number"] if raw_event["properties"][property_name]["number"] else None
+        return (
+            raw_event["properties"][property_name]["number"]
+            if raw_event["properties"][property_name]["number"]
+            else None
+        )
 
     def _extract_select(self, raw_event: dict, property_name: str) -> str:
         """
@@ -332,7 +375,6 @@ class EventsExtractor:
         return {
             #            "id": location_result['id'],
             "name": self._extract_name(location_result),
-            "region": self._extract_relation(location_result, "Region"),
             "biome": self._extract_select(location_result, "Biome"),
             "near": self._extract_multi_relation(location_result, "Near"),
         }

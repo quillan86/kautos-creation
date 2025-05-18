@@ -18,7 +18,9 @@ authors = [
 dependencies = [
     "pandas",
     "notion-client",
-    "python-dotenv"
+    "python-dotenv",
+    "anthropic",
+    "pydantic"
 ]
 
 [project.optional-dependencies]
