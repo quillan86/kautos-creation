@@ -1,4 +1,4 @@
-from src.constants import NOTION_TOKEN, LOCATION_DATABASE_ID, TIMELINE_DATABASE_ID
+from src.backend.constants import NOTION_TOKEN, LOCATION_DATABASE_ID, TIMELINE_DATABASE_ID
 from notion_client import Client
 
 
@@ -228,6 +228,7 @@ class EventsExtractor:
             "name": self._extract_name(raw_event),
             "start_year": self._extract_number(raw_event, "Start Year"),
             "end_year": self._extract_number(raw_event, "End Year"),
+            "event_type": self._extract_select(raw_event, "Event Type"),
             "importance": self._extract_number(raw_event, "Importance"),
             "description": self._extract_rich_text(raw_event, "Description"),
             "excerpt": self._extract_rich_text(raw_event, "Excerpt"),

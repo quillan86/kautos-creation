@@ -1,5 +1,5 @@
 from anthropic import Anthropic
-from src.constants import ANTHROPIC_API_KEY, MODEL_NAME
+from src.backend.constants import ANTHROPIC_API_KEY, MODEL_NAME
 
 
 class LLM:

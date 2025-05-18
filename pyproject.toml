@@ -20,7 +20,8 @@ dependencies = [
     "notion-client",
     "python-dotenv",
     "anthropic",
-    "pydantic"
+    "pydantic",
+    "streamlit"
 ]
 
 [project.optional-dependencies]
