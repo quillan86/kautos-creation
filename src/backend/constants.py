@@ -16,3 +16,9 @@ REGION_DATABASE_ID = os.getenv("REGION_DATABASE_ID")
 POLITY_DATABASE_ID = os.getenv("POLITY_DATABASE_ID")
 LANGUAGE_DATABASE_ID = os.getenv("LANGUAGE_DATABASE_ID")
 RELIGION_DATABASE_ID = os.getenv("RELIGION_DATABASE_ID")
+
+# Ensure you have placeholder/actual values for database IDs if not in .env
+if NOTION_TOKEN is None:
+    print("Warning: NOTION_TOKEN not found. Please set it in your .env file or environment variables.")
+if ANTHROPIC_API_KEY is None:
+    print("Warning: ANTHROPIC_API_KEY not found. Please set it in your .env file or environment variables.")
