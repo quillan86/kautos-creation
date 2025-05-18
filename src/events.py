@@ -1,5 +1,4 @@
-import json
-from src.constants import NOTION_TOKEN, LOCATION_DATABASE_ID, POLITY_DATABASE_ID, TIMELINE_DATABASE_ID
+from src.constants import NOTION_TOKEN, LOCATION_DATABASE_ID, TIMELINE_DATABASE_ID
 from notion_client import Client
 
 
@@ -16,22 +15,6 @@ class EventsExtractor:
     def __init__(self):
         self.client = Client(auth=NOTION_TOKEN)
 
-    def get_event_by_name(self, event_name: str) -> dict | None:
-        """
-        Gets an event by its name.
-
-        Args:
-            event_name (str): The name of the event
-
-        Returns:
-            dict: The event
-        """
-        event = self.client.databases.query(
-            **{"database_id": TIMELINE_DATABASE_ID, "filter": {"property": "Name", "title": {"equals": event_name}}}
-        )
-        return event.get("results", [])[0] if event.get("results", []) else None
-
-
     def get_similar_events_to_event(self, event_name: str, delta_year: int, near: bool = True) -> list[dict]:
         """
         Gets similar events to the given event.
@@ -47,8 +30,8 @@ class EventsExtractor:
 
         event = self.get_event_by_name(event_name)
 
-        start_year_event = event["properties"]["Start Year"]["number"]
-        end_year_event = event["properties"]["End Year"]["number"]
+        start_year_event = self._extract_number(event, "Start Year")
+        end_year_event = self._extract_number(event, "End Year")
         location_id_event = self._extract_relation(event, "Location")
         location_event = self.client.pages.retrieve(page_id=location_id_event)
         location_name_event = self._extract_name(location_event)
@@ -157,6 +140,21 @@ class EventsExtractor:
 
         return events
 
+    def _get_event_by_name(self, event_name: str) -> dict | None:
+        """
+        Gets an event by its name. Does not parse the event.
+
+        Args:
+            event_name (str): The name of the event
+
+        Returns:
+            dict: The event
+        """
+        event = self.client.databases.query(
+            **{"database_id": TIMELINE_DATABASE_ID, "filter": {"property": "Name", "title": {"equals": event_name}}}
+        )
+        return event.get("results", [])[0] if event.get("results", []) else None
+
     def _parse_event(self, raw_event: dict) -> dict:
         """
         Parses a raw event and returns a dictionary with the event details.
@@ -190,9 +188,9 @@ class EventsExtractor:
         return {
             #            "id": raw_event['id'],
             "name": self._extract_name(raw_event),
-            "start_year": raw_event["properties"]["Start Year"]["number"],
-            "end_year": raw_event["properties"]["End Year"]["number"],
-            "importance": int(raw_event["properties"]["Importance"]["number"]),
+            "start_year": self._extract_number(raw_event, "Start Year"),
+            "end_year": self._extract_number(raw_event, "End Year"),
+            "importance": self._extract_number(raw_event, "Importance"),
             "description": self._extract_rich_text(raw_event, "Excerpt"),
             "location": location,
             "polities": polities,
@@ -308,6 +306,12 @@ class EventsExtractor:
             else None
         )
 
+    def _extract_number(self, raw_event: dict, property_name: str) -> float:
+        """
+        Extracts the number of the property from the raw_event.
+        """
+        return raw_event["properties"][property_name]["number"] if raw_event["properties"][property_name]["number"] else None
+
     def _extract_select(self, raw_event: dict, property_name: str) -> str:
         """
         Extracts the name of the select property from the raw_event.
@@ -349,6 +353,6 @@ class EventsExtractor:
         return {
             "name": self._extract_name(polity_result),
             "type": self._extract_select(polity_result, "Type"),
-            "start_year": polity_result["properties"]["Start Year"]["number"],
-            "end_year": polity_result["properties"]["End Year"]["number"],
+            "start_year": self._extract_number(polity_result, "Start Year"),
+            "end_year": self._extract_number(polity_result, "End Year"),
         }
