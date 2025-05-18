@@ -118,3 +118,7 @@ This method uses the provided `Dockerfile` and `docker-compose.yml` to run the a
         ```
 
 **Note on Dependencies:** All primary Python dependencies are listed in `pyproject.toml` and managed by `uv sync` (for local development) or within the Docker image build process.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
