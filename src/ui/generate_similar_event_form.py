@@ -1,6 +1,7 @@
 import streamlit as st
+from src.backend.generator import Generator
 
-def display_generate_similar_event_form(generator):
+def display_generate_similar_event_form(generator: Generator):
     st.header("Generate Similar Event")
     st.markdown("Create a new event in Kautos based on an existing one.")
 

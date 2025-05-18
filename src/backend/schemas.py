@@ -46,7 +46,7 @@ class Event(BaseModel):
     end_year: int | None = Field(..., description="The year this event concluded or its immediate effects ceased. Use null if the event is punctual.")
     event_type: EventTypeEnum = Field(..., description="The primary classification of this event according to the historical frameworks (e.g., Political, Military).")
     importance: int = Field(..., description="Numerical rating (0-10) of the event's overall impact on the world: 10=era-defining, 8=major widespread, 6=significant regional/national, 4=notable local, 0-2=minor.")
-    description: str = Field(..., description="A comprehensive narrative of the event. Detail its causes, key occurrences, involved factions or characters, and immediate to short-term outcomes. Aim for 2-4 well-developed paragraphs that capture the event's significance and unfold its story in the world.")
+    description: str = Field(..., description="A comprehensive narrative of the event. Detail its causes, key occurrences, involved factions or characters, and immediate to short-term outcomes. Aim for 2-3 well-developed paragraphs that capture the event's significance and unfold its story in the world.")
     excerpt: str = Field(..., description="A brief, engaging summary of the event (typically 1-2 sentences), suitable for quick overviews, timeline entries, or as an introductory hook.")
     location: Location = Field(..., description="The primary geographical `Location` object in the world where this event took place or was centered.")
     polities: list[Polity] = Field(..., description="A list of `Polity` objects representing political entities in the world directly involved in or significantly affected by this event.")

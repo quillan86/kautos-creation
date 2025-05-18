@@ -1,6 +1,7 @@
 import streamlit as st
+from src.backend.generator import Generator
 
-def display_generate_event_in_range_form(generator):
+def display_generate_event_in_range_form(generator: Generator):
     st.header("Generate New Event in Range")
     st.markdown("Create a brand new event within a specified time period and location in Kautos.")
 

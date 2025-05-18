@@ -51,6 +51,10 @@ The Streamlit UI (`src/app.py`) is structured as follows:
 
 ## Setup & Running
 
+There are two primary ways to set up and run the Kautos Creation Platform:
+
+**Method 1: Local Development (using `uv` and direct execution)**
+
 1.  **Prerequisites:** 
     *   Python 3.12 (as specified in `pyproject.toml`)
     *   [uv](https://github.com/astral-sh/uv) (Python package installer and resolver, `pip install uv` if not already installed)
@@ -68,10 +72,49 @@ The Streamlit UI (`src/app.py`) is structured as follows:
     source .venv/bin/activate
     ```
     (On Windows, use `.venv\Scripts\activate`)
-5.  **Configure Constants:** Ensure your Notion API key, Anthropic API key, and relevant database IDs are correctly set up. This project might use a `.env` file (managed by `python-dotenv` listed in dependencies) or directly in `src/backend/constants.py`. If using a `.env` file, create it in the project root and add your variables there (e.g., `NOTION_TOKEN="your_token"`). Ensure `.env` is in your `.gitignore`.
+5.  **Configure Constants via `.env` file:** 
+    *   Create a `.env` file in the project root directory (e.g., `kautos-creation/.env`).
+    *   Add your API keys and database IDs to this file. Example:
+        ```env
+        NOTION_TOKEN="your_notion_token"
+        ANTHROPIC_API_KEY="your_anthropic_key"
+        MODEL_NAME="claude-3-opus-20240229" # Or your preferred model
+        TIMELINE_DATABASE_ID="your_timeline_db_id"
+        LOCATION_DATABASE_ID="your_location_db_id"
+        # Add other DB IDs as needed (REGION_DATABASE_ID, etc.)
+        ```
+    *   Ensure this `.env` file is listed in your `.gitignore` to prevent committing secrets.
+    *   The application (`src/backend/constants.py`) uses `python-dotenv` to load these variables.
 6.  **Run the Streamlit Application:**
     ```bash
     streamlit run src/app.py
     ```
 
-*(All primary dependencies are listed in `pyproject.toml` and managed by `uv sync`.)*
+**Method 2: Dockerized Execution (using Docker and Docker Compose)**
+
+This method uses the provided `Dockerfile` and `docker-compose.yml` to run the application in a containerized environment.
+
+1.  **Prerequisites:**
+    *   [Docker Desktop](https://www.docker.com/products/docker-desktop/) or Docker Engine/CLI installed and running.
+2.  **Clone the repository:** (If not already done)
+    ```bash
+    git clone <repository_url>
+    cd kautos-creation
+    ```
+3.  **Configure Constants via `.env` file:** 
+    *   Ensure you have a `.env` file in the project root directory as described in Step 5 of "Method 1: Local Development". The `docker-compose.yml` is configured to use this file to pass environment variables to the container.
+4.  **Build and Run with Docker Compose:**
+    *   From the project root directory (where `docker-compose.yml` is located), run:
+        ```bash
+        docker compose up --build -d
+        ```
+    *   `--build`: Forces Docker Compose to rebuild the Docker image. You can omit `--build` on subsequent runs if the `Dockerfile` or application code (that's copied into the image) hasn't changed.
+    *   The application will be accessible at `http://localhost:8501` in your browser.
+5.  **Stopping the Application:**
+    *   Press `Ctrl+C` in the terminal where `docker compose up` is running.
+    *   To remove the containers and networks created by `docker compose up`, run:
+        ```bash
+        docker compose down
+        ```
+
+**Note on Dependencies:** All primary Python dependencies are listed in `pyproject.toml` and managed by `uv sync` (for local development) or within the Docker image build process.

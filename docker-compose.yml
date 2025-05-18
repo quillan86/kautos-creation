@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env # This tells Docker Compose to load environment variables from the .env file in the project root
+    volumes:
+      # Optional: For development, you might want to mount your src directory
+      # to see code changes without rebuilding the image. 
+      # For production, you typically wouldn't do this.
+      - ./src:/app/src
+      - ./local:/app/local
+    # Healthcheck (optional, but good practice)
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s # Give Streamlit some time to start up 

@@ -1,6 +1,7 @@
 import streamlit as st
+from src.backend.generator import Generator
 
-def display_complete_event_form(generator):
+def display_complete_event_form(generator: Generator):
     st.header("Complete Existing Event")
     st.markdown("Flesh out details for an existing event in Kautos.")
 
